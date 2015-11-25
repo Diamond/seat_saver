@@ -1,0 +1,68 @@
+Elm.SeatSaver = Elm.SeatSaver || {};
+Elm.SeatSaver.make = function (_elm) {
+   "use strict";
+   _elm.SeatSaver = _elm.SeatSaver || {};
+   if (_elm.SeatSaver.values) return _elm.SeatSaver.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $Http = Elm.Http.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $StartApp = Elm.StartApp.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      if (_p0.ctor === "Toggle") {
+            var updateSeat = function (seatFromModel) {
+               return _U.eq(seatFromModel.seatNo,_p0._0.seatNo) ? _U.update(seatFromModel,{occupied: $Basics.not(seatFromModel.occupied)}) : seatFromModel;
+            };
+            return {ctor: "_Tuple2",_0: A2($List.map,updateSeat,model),_1: $Effects.none};
+         } else {
+            var newModel = A2($Maybe.withDefault,model,_p0._0);
+            return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
+         }
+   });
+   var SetSeats = function (a) {    return {ctor: "SetSeats",_0: a};};
+   var Toggle = function (a) {    return {ctor: "Toggle",_0: a};};
+   var seatItem = F2(function (address,seat) {
+      var occupiedClass = seat.occupied ? "occupied" : "available";
+      return A2($Html.li,
+      _U.list([$Html$Attributes.$class(A2($Basics._op["++"],"seat ",occupiedClass)),A2($Html$Events.onClick,address,Toggle(seat))]),
+      _U.list([$Html.text($Basics.toString(seat.seatNo))]));
+   });
+   var view = F2(function (address,model) {    return A2($Html.ul,_U.list([$Html$Attributes.$class("seats")]),A2($List.map,seatItem(address),model));});
+   var Seat = F2(function (a,b) {    return {seatNo: a,occupied: b};});
+   var decodeSeats = function () {
+      var seat = A3($Json$Decode.object2,
+      F2(function (seatNo,occupied) {    return A2(Seat,seatNo,occupied);}),
+      A2($Json$Decode._op[":="],"seatNo",$Json$Decode.$int),
+      A2($Json$Decode._op[":="],"occupied",$Json$Decode.bool));
+      return A2($Json$Decode.at,_U.list(["data"]),$Json$Decode.list(seat));
+   }();
+   var fetchSeats = $Effects.task(A2($Task.map,SetSeats,$Task.toMaybe(A2($Http.get,decodeSeats,"http://localhost:4000/api/seats"))));
+   var init = {ctor: "_Tuple2",_0: _U.list([]),_1: fetchSeats};
+   var app = $StartApp.start({init: init,update: update,view: view,inputs: _U.list([])});
+   var main = app.html;
+   var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
+   return _elm.SeatSaver.values = {_op: _op
+                                  ,app: app
+                                  ,main: main
+                                  ,Seat: Seat
+                                  ,init: init
+                                  ,Toggle: Toggle
+                                  ,SetSeats: SetSeats
+                                  ,update: update
+                                  ,view: view
+                                  ,seatItem: seatItem
+                                  ,fetchSeats: fetchSeats
+                                  ,decodeSeats: decodeSeats};
+};
